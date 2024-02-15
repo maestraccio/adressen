@@ -1,15 +1,9 @@
 #!/usr/bin/env python3
 from time import sleep
-import os, ast, string
+import os, ast
 
-versie = "0.1"
-datum = "20240121"
-
-alfabet = string.ascii_uppercase
-cijfers = ""
-for i in range(0,10):
-    cijfers = cijfers+str(i)
-cijfersalfabet = cijfers+alfabet
+versie = "0.11"
+datum = "20240215"
 
 basismap = os.path.dirname(os.path.realpath(__file__))
 werkmap = basismap 
@@ -78,6 +72,10 @@ def adreslijst():
     return adressen
 
 def voorselectie():
+    cijfersalfabet = ""
+    for i in adressen:
+        if i[0].upper() not in cijfersalfabet:
+            cijfersalfabet += i[0].upper()
     gefilterd = input("Maak een voorselectie \"?\" of \"?:?\"\n%s" % inputindent)
     if gefilterd.upper() in afsluitlijst:
         return
@@ -163,6 +161,9 @@ def nieuwadres():
                     print("Er bestaat al een adres met dit kenmerk")
                     oops = True
             if oops == False:
+                for i,j in nieuw.items():
+                    if j == "":
+                        nieuw = nieuw.pop(i,None)
                 try:
                     with open(nieuw[veldenlijst[int(kenmerk)-1]]+ext,"w") as n:
                         print(nieuw,end="",file=n)
@@ -222,6 +223,9 @@ def wijzigadres():
                     if kenny+ext in adressen and kenny+ext != kenmerk:
                         print("Er bestaat al een adres met dit kenmerk")
                         oops = True
+                for i,j in adres.items():
+                    if j == "":
+                        adres = adres.pop(i,None)
                 if oops == False:
                     try:
                         with open(adres[veldenlijst[int(kenny)-1]]+ext,"w") as w:
@@ -237,6 +241,8 @@ def wijzigadres():
                     pass
                 else:
                     adres[veldenlijst[toevoegen]] = input(veldenlijst[toevoegen]+" : ")
+                    if adres[veldenlijst[toevoegen]] == "":
+                        del adres[veldenlijst[toevoegen]]
             except:
                 pass
     except:
@@ -278,20 +284,31 @@ while loop == True:
     if lezenofschrijven.upper() in afsluitlijst:
         exit()
     elif lezenofschrijven == "0":
+        print(lijn)
         printversie()
+        print(lijn)
     elif lezenofschrijven == "1":
+        print(lijn)
         print(col+optieeen+col0)
         nieuwadres()
+        print(lijn)
     elif lezenofschrijven == "3":
+        print(lijn)
         print(col+optiedrie+col0)
         zoekadres()
+        print(lijn)
     elif lezenofschrijven == "4":
+        print(lijn)
         print(col+optievier+col0)
         wijzigadres()
+        print(lijn)
     elif lezenofschrijven == "5":
+        print(lijn)
         print(col+optievijf+col0)
         verwijderadres()
+        print(lijn)
     #elif lezenofschrijven == "2":
     else:
+        print(lijn)
         print(col+optietwee+col0)
         printadres()
