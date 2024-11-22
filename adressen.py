@@ -2,8 +2,8 @@
 from time import sleep
 import os, ast
 
-versie = "0.11"
-datum = "20240215"
+versie = "0.12"
+datum = "20241122"
 
 basismap = os.path.dirname(os.path.realpath(__file__))
 werkmap = basismap 
@@ -74,19 +74,28 @@ def adreslijst():
 def voorselectie():
     cijfersalfabet = ""
     for i in adressen:
-        if i[0].upper() not in cijfersalfabet:
-            cijfersalfabet += i[0].upper()
-    gefilterd = input("Maak een voorselectie \"?\" of \"?:?\"\n%s" % inputindent)
-    if gefilterd.upper() in afsluitlijst:
-        return
-    if gefilterd == "":
-        gefilterd = cijfersalfabet
-    for i in gefilterd:
-        if i.upper() not in cijfersalfabet:
-            break
-    bereikstart,bereikeind = gefilterd[0].upper(),gefilterd[-1].upper()
-    bereik = cijfersalfabet[cijfersalfabet.index(bereikstart):cijfersalfabet.index(bereikeind)+1]
-    return bereik
+        if i[0] not in cijfersalfabet:
+            cijfersalfabet += i[0]
+    while len(cijfersalfabet) > 0:
+        gefilterd = input("Maak een voorselectie \"?\" of \"?:?\"\nKies uit %s\n%s" % (col+cijfersalfabet+col0,inputindent))
+        if gefilterd.upper() in afsluitlijst:
+            return
+        if gefilterd == "":
+            bereik = cijfersalfabet
+            return bereik
+        elif len(gefilterd) == 3 and gefilterd[1] == ":":
+            voorbereik = gefilterd
+        else:
+            voorbereik = "%s:%s" % (gefilterd[0],gefilterd[0])
+        if len(voorbereik) == 0:
+            bereik = cijfersalfabet
+        else:
+            try:
+                bereik = cijfersalfabet[cijfersalfabet.index(voorbereik[0]):cijfersalfabet.index(voorbereik[2])+1]
+                print(bereik)
+                return bereik
+            except:
+                print("Het bereik is hoofdlettergevoelig. Probeer het nog eens.")
 
 def zoekadres():
     zoeken = True
@@ -109,7 +118,7 @@ def printadres():
             break
         opties = []
         for i in adressen:
-            if i[0].upper() in bereik:
+            if i[0] in bereik:
                 print(forr3(adressen.index(i)+1)+" : "+col+i[:-4]+col0)
                 opties.append(adressen.index(i))
         if opties == []:
