@@ -46,8 +46,8 @@ col0 = "\033[0m"
 ext = ".adr"
 afsluitlijst = ["X","Q",":X",":Q"]
 klaarlijst = ["OK"]
-jalijst = ["J","Y"]
-neelijst = ["N"]
+jalijst = ["J","Y",")",">","]"]
+neelijst = ["N","(","<","["]
 forlmax = ("{:<%d}" % maxlen).format
 forr3 = "{:>3}".format
 lijn = "-"*maxlen+"+"+"-"*maxlen
@@ -79,6 +79,8 @@ def voorselectie():
     while len(cijfersalfabet) > 0:
         gefilterd = input("Maak een voorselectie \"?\" of \"?:?\"\nKies uit %s\n%s" % (col+cijfersalfabet+col0,inputindent))
         if gefilterd.upper() in afsluitlijst:
+            exit()
+        elif gefilterd.upper() in neelijst:
             return
         if gefilterd == "":
             bereik = cijfersalfabet
@@ -102,6 +104,8 @@ def zoekadres():
     while zoeken == True:
         zoek = input("Geef een zoekterm op\n%s" % inputindent)
         if zoek.upper() in afsluitlijst:
+            exit()
+        elif zoek.upper() in neelijst:
             break
         for i in adressen:
             with open(i,"r") as a:
@@ -152,6 +156,8 @@ def nieuwadres():
                 print(forr3(veldenlijst.index(i)+1)+" : "+forlmax(i))
         toevoegen = input("Kies een veld of \"OK\":\n%s" % inputindent)
         if toevoegen.upper() in afsluitlijst:
+            exit()
+        elif toevoegen.upper() in neelijst:
             break
         elif toevoegen.upper() in klaarlijst:
             kenmerkindex = 0
@@ -204,6 +210,8 @@ def wijzigadres():
                     print(forr3(veldenlijst.index(i)+1)+" : "+forlmax(i))
             toevoegen = input("Kies een veld of \"OK\":\n%s" % inputindent)
             if toevoegen.upper() in afsluitlijst:
+                exit()
+            elif toevoegen.upper() in neelijst:
                 break
             elif toevoegen.upper() in klaarlijst:
                 kenmerkindex = 0
@@ -221,6 +229,8 @@ def wijzigadres():
                     kenny = input("Kies een veld als kenmerk (nu: %s)\n%s" % (col+kenmerk[:-4]+col0,inputindent))
                 oops = False
                 if kenny.upper() in afsluitlijst:
+                    exit
+                elif kenny.upper() in neelijst:
                     break
                 elif kenny == "":
                     kenny = veldenlijst.index(waar)+1
@@ -270,6 +280,8 @@ def verwijderadres():
                 opties.append(adressen.index(i)+1)
         weg = input("Welk adres wil je VERWIJDEREN?\n%s" % inputindent)
         if weg.upper() in afsluitlijst:
+            exit()
+        elif weg.upper() in neelijst:
             break
         try:
             weg = int(weg)
