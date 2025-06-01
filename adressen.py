@@ -1,15 +1,22 @@
 #!/usr/bin/env python3
 from time import sleep
 import os, ast
+from chooseFromNumberedList import chooseFromNumberedList as cFNL
+from chooseFromNumberedList import chooseFromDictionary as cFD
 
-versie = "0.12"
-datum = "20241122"
+versie = "0.25"
+datum = "20250601"
 
 basismap = os.path.dirname(os.path.realpath(__file__))
 werkmap = basismap 
 os.chdir(basismap)
 with open("logo","r") as l:
     logo = ast.literal_eval(l.read())
+
+colgoed = "\033[92m"
+colslecht = "\033[91m"
+col = "\033[95m"
+col0 = "\033[0m"
 
 veldenlijst = [
         "Voorna(a)m(en)",
@@ -20,6 +27,9 @@ veldenlijst = [
         "BTW",
         "IBAN",
         "BIC",
+        "BSN",
+        "CF",
+        "Verjaardag",
         "Adres",
         "Postcode",
         "Woonplaats",
@@ -31,25 +41,23 @@ veldenlijst = [
         "Email2",
         "Website1",
         "Website2",
-        "Aantekening"
+        "Aantekening",
         ]
-maxlen = len(max(veldenlijst, key=len))
-optieeen = "  1 : Toevoegen"
-optietwee = " >2 : Inzien"
-optiedrie = "  3 : Zoeken"
-optievier = "  4 : Wijzigen/Kopiëren"
-optievijf = "  5 : Verwijderen"
 
-col = "\033[95m"
-col0 = "\033[0m"
+maxlen = len(max(veldenlijst, key=len))
+Optieslijst = [
+        "Toevoegen",
+        "Inzien",
+        "Zoeken",
+        "Wijzigen/Kopiëren",
+        "Verwijderen",
+        ]
 
 ext = ".adr"
-afsluitlijst = ["X","Q",":X",":Q"]
-klaarlijst = ["OK"]
-jalijst = ["J","Y",")",">","]"]
-neelijst = ["N","(","<","["]
+afsluitlijst = [":q","X","Q",":X",":Q"]
 forlmax = ("{:<%d}" % maxlen).format
 forr3 = "{:>3}".format
+forr4 = "{:>4}".format
 lijn = "-"*maxlen+"+"+"-"*maxlen
 halflijn = "+"+"-"*maxlen
 inputindent = "  : "
@@ -58,6 +66,16 @@ print(lijn)
 for i in range(len(logo)):
     print(col+logo[i]+col0, end="", flush=True)
     sleep(0.001)
+print(lijn
+)
+def printhidden():
+    print("""  %s:q : Verlaten%s
+  %s:u : Herstellen%s
+  %s:w : Bevestigen%s
+""" % (colslecht,col0,col,col0,colgoed,col0)
+        )
+
+printhidden()
 print(lijn)
 
 def printversie():
@@ -71,17 +89,52 @@ def adreslijst():
     adressen = sorted(adressen)
     return adressen
 
+def zoekadres():
+    zoeken = True
+    while zoeken == True:
+        zoek = input("Geef een zoekterm op\n%s" % inputindent)
+        if zoek == ":q":
+            print(lijn)
+            print(col+"Verlaten"+col0)
+            exit()
+        elif zoek == ":u":
+            print(lijn)
+            print(col+"Herstel"+col0)
+            break
+        lijstmetvelden = []
+        for i in adressen:
+            with open(i,"r") as a:
+                adres = ast.literal_eval(a.read())
+            for j,k in adres.items():
+                if zoek.lower() in k.lower() and j not in lijstmetvelden:
+                    lijstmetvelden.append(j)
+        try:
+            maxlenvelden = len(max(lijstmetvelden, key = len))
+            formaxlenvelden = ("{:<%d}" % maxlenvelden).format
+            for i in adressen:
+                with open(i,"r") as a:
+                    adres = ast.literal_eval(a.read())
+                for j,k in adres.items():
+                    if zoek.lower() in k.lower():
+                        if zoek.lower() in k.lower():
+                            print("%s is gevonden in %s" % (zoek,col+forlmax(i[:-4][:maxlen]))+col0+" : "+formaxlenvelden(j)+" : "+k)
+        except:
+            print("%s%s is niet gevonden%s" % (colslecht,zoek,col0))
+
 def voorselectie():
     cijfersalfabet = ""
     for i in adressen:
         if i[0] not in cijfersalfabet:
             cijfersalfabet += i[0]
     while len(cijfersalfabet) > 0:
-        gefilterd = input("Maak een voorselectie \"?\" of \"?:?\"\nKies uit %s\n%s" % (col+cijfersalfabet+col0,inputindent))
-        if gefilterd.upper() in afsluitlijst:
+        gefilterd = input("Maak een voorselectie \"?\" of \"?:?\"\nKies uit %s\n%s" % (col+cijfersalfabet+col0,inputindent)).replace(" ","")
+        if gefilterd == ":q":
+            print(lijn)
+            print(col+"Verlaten"+col0)
             exit()
-        elif gefilterd.upper() in neelijst:
-            return
+        elif gefilterd == ":u":
+            bereik = cijfersalfabet
+            return bereik
         if gefilterd == "":
             bereik = cijfersalfabet
             return bereik
@@ -99,237 +152,233 @@ def voorselectie():
             except:
                 print("Het bereik is hoofdlettergevoelig. Probeer het nog eens.")
 
-def zoekadres():
-    zoeken = True
-    while zoeken == True:
-        zoek = input("Geef een zoekterm op\n%s" % inputindent)
-        if zoek.upper() in afsluitlijst:
-            exit()
-        elif zoek.upper() in neelijst:
-            break
-        for i in adressen:
-            with open(i,"r") as a:
-                adres = ast.literal_eval(a.read())
-                for j,k in adres.items():
-                    if zoek.lower() in k.lower():
-                        print("%s is gevonden in %s" % (zoek,col+forlmax(i[:-4][:maxlen]))+col0+" : "+forlmax(j)+" : "+k)
-
-def printadres():
+def printadres(bereik):
     tony = True
     while tony == True:
-        bereik = voorselectie()
+        adresopties = []
         if bereik == None:
             break
         opties = []
         for i in adressen:
             if i[0] in bereik:
-                print(forr3(adressen.index(i)+1)+" : "+col+i[:-4]+col0)
-                opties.append(adressen.index(i))
-        if opties == []:
+                adresopties.append(i[:-4])
+        wat,uitvouw = cFNL([adresopties,"A",1,1,[":q",":u"]])
+        if adresopties == []:
             break
-        uitvouwen = input("Inzien\n%s" % inputindent)
-        if uitvouwen.upper() in afsluitlijst:
+        if uitvouw == ":q":
+            print(lijn)
+            print(col+"Verlaten"+col0)
+            exit()
+        elif uitvouw == ":u":
+            print(lijn)
+            print(col+"Herstel"+col0)
             break
         try:
-            uitvouw = int(uitvouwen)-1
-            print(col+adressen[uitvouw][:-4][:maxlen]+col0,end="")
-            with open(adressen[uitvouw],"r") as a:
-                kenmerk = adressen[uitvouw]
+            print(col+adresopties[uitvouw][:maxlen]+col0,end="")
+            with open(adresopties[uitvouw]+".adr","r") as a:
+                kenmerk = adresopties[uitvouw]
                 adres = ast.literal_eval(a.read())
-                print("-"*(maxlen-len(adressen[uitvouw][:-4][:maxlen]))+halflijn)
+                print("-"*(maxlen-len(adresopties[uitvouw][:maxlen]))+halflijn)
                 for j in veldenlijst:
                     if j in adres:
                         print(forlmax(j)+": "+adres[j])
-            print(lijn)
             return kenmerk,adres
-        except:
+        except(Exception) as e:
+            print(e)
             pass
 
 def nieuwadres():
+    printhidden()
     nieuw = {}
+    for i in veldenlijst:
+        nieuw[i] = ""
     nieuwloop = True
     while nieuwloop == True:
-        for i in veldenlijst:
-            if i in nieuw:
-                print(forr3(veldenlijst.index(i)+1)+" : "+forlmax(i)+" : "+nieuw[i])
-            else:
-                print(forr3(veldenlijst.index(i)+1)+" : "+forlmax(i))
-        toevoegen = input("Kies een veld of \"OK\":\n%s" % inputindent)
-        if toevoegen.upper() in afsluitlijst:
+        wat,toevoegen = cFD([nieuw,1,veldenlijst[0],[":q",":u",":w"]])
+        if toevoegen == ":q":
+            print(lijn)
+            print(col+"Verlaten"+col0)
             exit()
-        elif toevoegen.upper() in neelijst:
+        elif toevoegen == ":u":
+            print(lijn)
+            print(col+"Herstel"+col0)
             break
-        elif toevoegen.upper() in klaarlijst:
-            kenmerkindex = 0
-            for j in veldenlijst:
-                kenmerkindex += 1
-                if j in nieuw:
-                    print(forr3(kenmerkindex)+" : "+forlmax(j)+": "+nieuw[j])
-            kenmerk = input("Kies een veld als kenmerk of typ handmatig\n%s" % inputindent)
-            oops = False
-            try:
-                if nieuw[veldenlijst[int(kenmerk)-1]]+ext in adressen:
-                    print("Er bestaat al een adres met dit kenmerk")
-                    oops = True
-            except:
+        elif toevoegen == ":w":
+            def kieskenmerk():
+                print("Kies een veld als kenmerk of typ een nieuw")
+                kenmerk,veld = cFD([nieuw,0,veldenlijst[0],[":q",":u"]])
+                return kenmerk,veld
+            kenmerk,veld = kieskenmerk()
+            if kenmerk == ":q":
+                exit()
+            elif kenmerk == ":u":
+                break
+            check = True
+            while check == True:
                 if kenmerk+ext in adressen:
                     print("Er bestaat al een adres met dit kenmerk")
-                    oops = True
-            if oops == False:
-                for i,j in nieuw.items():
-                    if j == "":
-                        nieuw = nieuw.pop(i,None)
-                try:
-                    with open(nieuw[veldenlijst[int(kenmerk)-1]]+ext,"w") as n:
-                        print(nieuw,end="",file=n)
-                    break
-                except:
-                    with open(kenmerk+ext,"w") as n:
-                        print(nieuw,end="",file=n)
-                    break
-        try:
-            toevoegen = int(toevoegen)-1
-            if toevoegen not in range(len(veldenlijst)):
-                pass
-            else:
-                nieuw[veldenlijst[toevoegen]] = input(veldenlijst[toevoegen]+" : ")
-        except:
-            pass
-
-def wijzigadres():
-    kenmerkadres = printadres()
-    try:
-        kenmerk = kenmerkadres[0]
-        adres = kenmerkadres[1]
-        wijzigloop = True
-        while wijzigloop == True:
-            for i in veldenlijst:
-                if i in adres:
-                    print(forr3(veldenlijst.index(i)+1)+" : "+forlmax(i)+" : "+adres[i])
+                    watnu,wat = cFNL([["Ander veld","Zelf typen"],"A",1,2,[":q"]])
+                    if wat == ":q":
+                        exit()
+                    elif wat == 0:
+                        kenmerk,veld = kieskenmerk()
+                    else:
+                        kenmerk = input(inputindent)
                 else:
-                    print(forr3(veldenlijst.index(i)+1)+" : "+forlmax(i))
-            toevoegen = input("Kies een veld of \"OK\":\n%s" % inputindent)
-            if toevoegen.upper() in afsluitlijst:
-                exit()
-            elif toevoegen.upper() in neelijst:
-                break
-            elif toevoegen.upper() in klaarlijst:
-                kenmerkindex = 0
-                for j in veldenlijst:
-                    kenmerkindex += 1
-                    if j in adres:
-                        print(forr3(kenmerkindex)+" : "+forlmax(j)+": "+adres[j])
-                try:
-                    waar = list(adres.keys())[list(adres.values()).index(kenmerk[:-4])]
-                except:
-                    waar = kenmerk[:-4]
-                try:
-                    kenny = input("Kies een veld als kenmerk (nu: %s)\n%s" % (str(veldenlijst.index(waar)+1)+" : "+col+kenmerk[:-4]+col0,inputindent))
-                except:
-                    kenny = input("Kies een veld als kenmerk (nu: %s)\n%s" % (col+kenmerk[:-4]+col0,inputindent))
-                oops = False
-                if kenny.upper() in afsluitlijst:
-                    exit
-                elif kenny.upper() in neelijst:
                     break
-                elif kenny == "":
-                    kenny = veldenlijst.index(waar)+1
-                try:
-                    if adres[veldenlijst[int(kenny)-1]]+ext in adressen and adres[veldenlijst[int(kenny)-1]]+ext != kenmerk:
-                        print("Er bestaat al een adres met dit kenmerk")
-                        oops = True
-                except:
-                    if kenny+ext in adressen and kenny+ext != kenmerk:
-                        print("Er bestaat al een adres met dit kenmerk")
-                        oops = True
-                for i,j in adres.items():
-                    if j == "":
-                        adres = adres.pop(i,None)
-                if oops == False:
-                    try:
-                        with open(adres[veldenlijst[int(kenny)-1]]+ext,"w") as w:
-                            print(adres,end="",file=w)
-                        break
-                    except:
-                        with open(kenny+ext,"w") as w:
-                            print(adres,end="",file=w)
-                        break
-            try:
-                toevoegen = int(toevoegen)-1
-                if toevoegen not in range(len(veldenlijst)):
-                    pass
-                else:
-                    adres[veldenlijst[toevoegen]] = input(veldenlijst[toevoegen]+" : ")
-                    if adres[veldenlijst[toevoegen]] == "":
-                        del adres[veldenlijst[toevoegen]]
-            except:
-                pass
-    except:
-        pass
-
-def verwijderadres():
-    verwijderloop = True
-    while verwijderloop == True:
-        bereik = voorselectie()
-        if bereik == None:
+            with open(kenmerk+ext,"w") as n:
+                print(nieuw,end="",file=n)
             break
-        opties = []
-        for i in adressen:
-            if i[0].upper() in bereik:
-                print(forr3(adressen.index(i)+1)+" : "+col+i[:-4]+col0)
-                opties.append(adressen.index(i)+1)
-        weg = input("Welk adres wil je VERWIJDEREN?\n%s" % inputindent)
-        if weg.upper() in afsluitlijst:
+        else:
+            nieuw[toevoegen] = input(nieuw[toevoegen]+" : ")
+
+def wijzigadres(bereik):
+    wijzigloop = True
+    while wijzigloop == True:
+        adressenopties = []
+        for i in bereik:
+            for j in adressen:
+                if j[0] == i:
+                    adressenopties.append(j[:-4])
+        adresoptie,optie = cFNL([adressenopties,"A",1,1,[":q",":u"]])
+        if adresoptie == ":q":
+            print(lijn)
+            print(col+"Verlaten"+col0)
             exit()
-        elif weg.upper() in neelijst:
-            break
-        try:
-            weg = int(weg)
-            if weg not in opties:
-                break
+        elif adresoptie == ":u":
+            print(lijn)
+            print(col+"Herstel"+col0)
+            break    
+        with open(adresoptie+ext,"r") as a:
+            adres = ast.literal_eval(a.read())
+        adresvelden = {}
+        for i in veldenlijst:
+            if i in adres:
+                adresvelden[i] = adres[i]
             else:
-                definitief = input("Weet je zeker dat je %s wilt VERWIJDEREN?\n%s" % (col+adressen[weg-1][:-4]+col0,inputindent))
-                if definitief.upper() not in jalijst:
+                adresvelden[i] = ""
+        wijzig = True
+        while wijzig == True:
+            printhidden()
+            key,waarde = cFD([adresvelden,1,veldenlijst[0],[":q",":u",":w"]])
+            if waarde == ":q":
+                exit()
+            elif waarde == ":u":
+                break
+            elif waarde == ":w":
+                def kieskenmerk():
+                    print("Kies een veld als kenmerk of typ een nieuw")
+                    kenmerk,veld = cFD([adresvelden,0,veldenlijst[0],[":q",":u"]])
+                    return kenmerk,veld
+                kenmerk,veld = kieskenmerk()
+                if kenmerk == ":q":
+                    exit()
+                elif kenmerk == ":u":
+                    break
+                kenmerkcheck = True
+                while kenmerkcheck == True:
+                    if kenmerk+ext in adressen:
+                        print("Er bestaat al een adres met dit kenmerk")
+                        watnu,wat = cFNL([["Ander veld","Overschrijven","Zelf typen"],"A",1,1,[":q",":u"]])
+                        if wat == ":q":
+                            exit()
+                        if wat == ":u":
+                            break
+                        elif wat == 0:
+                            kenmerk,veld = kieskenmerk()
+                        elif wat == 2:
+                            kenmerk = input("Kenmerk"+inputindent)
+                    else:
+                        break
+                with open(kenmerk+ext,"w") as w:
+                    for i in veldenlijst:
+                        if adresvelden[i] == "":
+                            del adresvelden[i]
+                    print(adresvelden,end="",file=w)
+                wijzigloop = False
+                wijzig = False
+            else:
+                ip = input(waarde+" : ")
+                if ip == ":q":
+                    exit()
+                elif ip == ":u":
                     break
                 else:
-                    os.remove(adressen[weg-1])
-                    adressen.pop(weg-1)
-                    return adressen
+                    adresvelden[waarde] = ip
+
+def verwijderadres(bereik):
+    printhidden()
+    adressenopties = []
+    for i in bereik:
+        for j in adressen:
+            if j[0] == i:
+                adressenopties.append(j[:-4])
+    adresoptie,optie = cFNL([adressenopties,"A",1,1,[":q",":u"]])
+    if adresoptie == ":q":
+        print(col+"Verlaten"+col0)
+        exit()
+    elif adresoptie == ":u":
+        print(col+"Herstel"+col0)
+        pass
+    else:
+        with open(adresoptie+ext,"r") as a:
+            adres = ast.literal_eval(a.read())
+        try:
+            adres[veldenlijst[0]]
         except:
-            pass
+            adres[veldenlijst[0]] = ""
+        verwijderloop = True
+        while verwijderloop == True:
+            print(colslecht,end="")
+            OK,NOK = cFD([adres,0,veldenlijst[0],[":q",":u",":w"]])
+            print(col0,end="")
+            if OK == ":q":
+                exit()
+            elif OK == ":w":
+                os.remove(adresoptie+ext)
+                break
+            else:
+                break
 
 loop = True
 while loop == True:
     adressen = adreslijst()
-    lezenofschrijven = input("%s\n%s\n%s\n%s\n%s\n%s" % (optieeen,optietwee,optiedrie,optievier,optievijf,inputindent))
-    if lezenofschrijven.upper() in afsluitlijst:
-        exit()
-    elif lezenofschrijven == "0":
+    wat,lezenofschrijven = cFNL([Optieslijst,"A",1,2,[":q",":v"]])
+    if lezenofschrijven == ":q":
         print(lijn)
+        print(col+"Verlaten"+col0)
+        exit()
+    elif lezenofschrijven == ":v":
+        print(lijn)
+        print(col+"Versie"+col0)
         printversie()
         print(lijn)
-    elif lezenofschrijven == "1":
+    elif lezenofschrijven == 0:
         print(lijn)
-        print(col+optieeen+col0)
+        print(col+wat+col0)
         nieuwadres()
         print(lijn)
-    elif lezenofschrijven == "3":
+    elif lezenofschrijven == 2:
         print(lijn)
-        print(col+optiedrie+col0)
+        print(col+wat+col0)
         zoekadres()
         print(lijn)
-    elif lezenofschrijven == "4":
+    elif lezenofschrijven == 3:
         print(lijn)
-        print(col+optievier+col0)
-        wijzigadres()
+        print(col+wat+col0)
+        bereik = voorselectie()
+        wijzigadres(bereik)
         print(lijn)
-    elif lezenofschrijven == "5":
+    elif lezenofschrijven == 4:
         print(lijn)
-        print(col+optievijf+col0)
-        verwijderadres()
+        print(col+wat+col0)
+        bereik = voorselectie()
+        verwijderadres(bereik)
         print(lijn)
-    #elif lezenofschrijven == "2":
+    #elif lezenofschrijven == 1:
     else:
         print(lijn)
-        print(col+optietwee+col0)
-        printadres()
+        print(col+wat+col0)
+        bereik = voorselectie()
+        printadres(bereik)
+        print(lijn)
