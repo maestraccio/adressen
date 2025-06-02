@@ -4,8 +4,8 @@ import os, ast
 from chooseFromNumberedList import chooseFromNumberedList as cFNL
 from chooseFromNumberedList import chooseFromDictionary as cFD
 
-versie = "0.25"
-datum = "20250601"
+versie = "0.26"
+datum = "20250602"
 
 basismap = os.path.dirname(os.path.realpath(__file__))
 werkmap = basismap 
@@ -257,9 +257,9 @@ def wijzigadres(bereik):
                 adresvelden[i] = adres[i]
             else:
                 adresvelden[i] = ""
+        printhidden()
         wijzig = True
         while wijzig == True:
-            printhidden()
             key,waarde = cFD([adresvelden,1,veldenlijst[0],[":q",":u",":w"]])
             if waarde == ":q":
                 exit()
@@ -271,10 +271,11 @@ def wijzigadres(bereik):
                     kenmerk,veld = cFD([adresvelden,0,veldenlijst[0],[":q",":u"]])
                     return kenmerk,veld
                 kenmerk,veld = kieskenmerk()
+                print(kenmerk,veld)
                 if kenmerk == ":q":
                     exit()
                 elif kenmerk == ":u":
-                    break
+                    return
                 kenmerkcheck = True
                 while kenmerkcheck == True:
                     if kenmerk+ext in adressen:
@@ -282,12 +283,14 @@ def wijzigadres(bereik):
                         watnu,wat = cFNL([["Ander veld","Overschrijven","Zelf typen"],"A",1,1,[":q",":u"]])
                         if wat == ":q":
                             exit()
-                        if wat == ":u":
-                            break
+                        elif wat == ":u":
+                            return
                         elif wat == 0:
                             kenmerk,veld = kieskenmerk()
                         elif wat == 2:
                             kenmerk = input("Kenmerk"+inputindent)
+                        else:
+                            break
                     else:
                         break
                 with open(kenmerk+ext,"w") as w:
@@ -295,8 +298,7 @@ def wijzigadres(bereik):
                         if adresvelden[i] == "":
                             del adresvelden[i]
                     print(adresvelden,end="",file=w)
-                wijzigloop = False
-                wijzig = False
+                break
             else:
                 ip = input(waarde+" : ")
                 if ip == ":q":
