@@ -7,7 +7,6 @@ from chooseFromNumberedList import chooseFromKeysList as cFKL
 from chooseFromNumberedList import chooseFromDictionary as cFD
 
 nu = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-print(nu)
 
 versie = "1.00"
 datum = "20250628"
@@ -485,6 +484,7 @@ def wijzigadres(bereik,now):
                         pass
                     else:
                         lijst.append(i+":"+wijzigdict[K])
+            lijst.append("REV:"+nu)
             lijst.append(wijzigvoet)
             vCard = ""
             for i in lijst:
@@ -494,6 +494,8 @@ def wijzigadres(bereik,now):
         lijst = []
         for i in wijzigdict:
             lijst.append(forlmax(i) + " : " + wijzigdict[i])
+            if i == vCarddictNL["FN"]:
+                print(col+wijzigdict[i]+col0)
         was,dat = cFNL([lijst,"A",1,2,afsluitlijst+bevestiglijst+teruglijst+vlijst])
         wat = was[:was.index(":")].strip()
         if dat == 1:
