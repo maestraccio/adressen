@@ -8,8 +8,8 @@ from chooseFromNumberedList import chooseFromDictionary as cFD
 
 nu = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
-versie = "1.00"
-datum = "20250628"
+versie = "1.01"
+datum = "20250629"
 
 basismap = os.path.dirname(os.path.realpath(__file__))
 werkmap = basismap 
@@ -223,26 +223,12 @@ def voorselectie():
             except:
                 print("Het bereik is hoofdlettergevoelig. Probeer het nog eens.")
 
-def printadres(bereik):
-    adresopties = []
-    if bereik == None:
-        return
-    opties = []
-    for i in adressen:
-        if i[0] in bereik:
-            adresopties.append(i[:-len(ext)])
-    wat,uitvouw = cFNL([adresopties,"A",1,1,afsluitlijst+bevestiglijst+teruglijst])
-    if adresopties == []:
-        return
-    if uitvouw in afsluitlijst:
-        printafsluiten()
-        exit()
-    elif uitvouw in teruglijst:
-        printterug()
-        return
+def printeenadres(toon):
     print(lijn)
     try:
-        with open(adresopties[uitvouw]+ext,"r") as a:
+        if toon[-len(extvcf):].lower() == extvcf.lower():
+            toon = toon[:-len(extvcf)]
+        with open(toon+ext,"r") as a:
             llijst = []
             for l in a:
                 if l[:l.index(":")] in vCarddictNL:
@@ -250,7 +236,7 @@ def printadres(bereik):
         lenlijst = []
         for ll in llijst:
             lenlijst.append(vCarddictNL[ll])
-        with open(adresopties[uitvouw]+ext,"r") as a:
+        with open(toon+ext,"r") as a:
             for l in a:
                 if l[:l.index(":")] in vCarddictNL:
                     if l[:l.index(":")] == "N":
@@ -262,7 +248,7 @@ def printadres(bereik):
                     elif l[:l.index(":")] == "ADR;TYPE=OTHER":
                         ADRlijsta = l[l.index(":")+1:].split(";")
         ll = len(max(lenlijst+ADRlijstpNL+ADRlijstwNL+NlijstNL,key=len))
-        with open(adresopties[uitvouw]+ext,"r") as a:
+        with open(toon+ext,"r") as a:
             for l in a:
                 if l[:l.index(":")] in vCarddictNL:
                     if l[:l.index(":")] == "FN":
@@ -321,11 +307,32 @@ def printadres(bereik):
                         if len(wraptext) > 1:
                             for i in wraptext[1:]:
                                 print(("{:%d}" % ll).format("")+"  "+i)
-
     except(Exception) as e:
-        print(e)
+        #print(e)
         pass
-    return adresopties[uitvouw]
+    return toon
+
+def printadres(bereik):
+    adresopties = []
+    if bereik == None:
+        return
+    opties = []
+    for i in adressen:
+        if i[0] in bereik:
+            if i[-len(ext):].lower() == ext.lower():
+                adresopties.append(i[:-len(ext)])
+            elif i[-len(extvcf):].lower() == extvcf.lower():
+                adresopties.append(i)
+    wat,uitvouw = cFNL([adresopties,"A",1,1,afsluitlijst+bevestiglijst+teruglijst])
+    if adresopties == []:
+        return
+    elif uitvouw in afsluitlijst:
+        exit()
+    elif uitvouw in teruglijst:
+        return wat
+    toon = adresopties[uitvouw]
+    printeenadres(toon)
+    return toon
 
 def wijzigadres(bereik,now):
     wijzigkop = ["BEGIN:VCARD","VERSION:3.0"]
@@ -335,6 +342,9 @@ def wijzigadres(bereik,now):
         rauwtw = []
     else:
         tewijzigen = printadres(bereik)
+        if tewijzigen in teruglijst:
+            printterug()
+            return
         with open(tewijzigen+ext,"r") as t:
             rauwtw = t.readlines()
     twrauw = {}
@@ -421,6 +431,7 @@ def wijzigadres(bereik,now):
             wijzigdict[i] = waardenlijst[veldenlijst.index(i)]
         else:
             wijzigdict[i] = ""
+    OS = False
     loop = True
     while loop == True:
         def mkvCard():
@@ -507,6 +518,9 @@ def wijzigadres(bereik,now):
         elif dat == 16:
             was,dat = cFNL([lijst[17:22],"A",18,18,afsluitlijst+bevestiglijst+teruglijst+vlijst])
             wat = was[:was.index(":")].strip()
+        elif dat == 22:
+            was,dat = cFNL([lijst[23:28],"A",24,24,afsluitlijst+bevestiglijst+teruglijst+vlijst])
+            wat = was[:was.index(":")].strip()
         if was in afsluitlijst:
             printafsluiten()
             exit()
@@ -536,6 +550,19 @@ def wijzigadres(bereik,now):
                 exit()
             elif dit in teruglijst:
                 pass
+            elif dit+ext in adressen and OS == False:
+                print("%s bestaat al!" % (colslecht+dit+col0))
+                printeenadres(dit)
+                print(lijn)
+                overschrijven = input("%sBij opslaan zal bovenstaand worden overschreven!%s\nWil je toch de naam %s gebruiken?\n" % (colslecht,col0,col+dit+col0))
+                if overschrijven in afsluitlijst:
+                    printafsluiten()
+                    exit()
+                elif overschrijven in teruglijst:
+                    pass
+                elif overschrijven in bevestiglijst:
+                    OS = True
+                    wijzigdict[wat] = dit
             else:
                 wijzigdict[wat] = dit
 
@@ -545,7 +572,10 @@ def verwijderadres(bereik):
     printhidden()
     OK = input("Weet je zeker dat je %s wilt %sverwijderen%s?\n" % (colslecht+laatstgezien+col0,colslecht,col0))
     if OK in bevestiglijst:
-        os.remove(laatstgezien+ext)
+        if laatstgezien[-len(extvcf):].lower() == extvcf.lower():
+            os.remove(laatstgezien)
+        else:
+            os.remove(laatstgezien+ext)
         print("Daag, %s" % laatstgezien)
 
 ###############################################################################
@@ -554,7 +584,7 @@ loop = True
 while loop == True:
     print(lijn)
     adressen = adreslijst()
-    wat,lezenofschrijven = cFNL([["Toevoegen","Inzien","Zoeken","Wijzigen/Kopiëren","Verwijderen","Importeren"],"A",1,2,afsluitlijst+bevestiglijst+teruglijst+vlijst])
+    wat,lezenofschrijven = cFNL([["Toevoegen","Inzien","Zoeken","Wijzigen/Kopiëren","Verwijderen"],"A",1,2,afsluitlijst+bevestiglijst+teruglijst+vlijst])
     if lezenofschrijven in afsluitlijst+teruglijst:
         printafsluiten()
         exit()
