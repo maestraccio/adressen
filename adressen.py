@@ -8,8 +8,8 @@ from chooseFromNumberedList import chooseFromDictionary as cFD
 
 nu = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
-versie = "1.01"
-datum = "20250629"
+versie = "1.02"
+datum = "20250720"
 
 basismap = os.path.dirname(os.path.realpath(__file__))
 werkmap = basismap 
@@ -127,10 +127,10 @@ for i in range(len(logo)):
     sleep(0.001)
 print(lijn)
 def printhidden():
-    print("""  %s:q : Afsluiten%s
-  %s:u : Herstellen%s
-  %s:w : Bevestigen%s"""
-        % (colslecht,col0,col,col0,colgoed,col0)
+    print("""  %s:u : Herstellen%s
+  %s:w : Bevestigen%s
+  %s:q : Afsluiten%s"""
+        % (col,col0,colgoed,col0,colslecht,col0)
         )
 
 printhidden()
@@ -141,10 +141,7 @@ def printversie():
 def adreslijst():
     adressen = []
     for a in os.listdir():
-        if a[-len(ext):].lower() == ext.lower():
-            adressen.append(a)
-    for a in os.listdir():
-        if a[-len(extvcf):].lower() == extvcf.lower():
+        if (a[-len(ext):].lower() == ext.lower()) or (a[-len(extvcf):].lower() == extvcf.lower()):
             adressen.append(a)
     adressen = sorted(adressen)
     return adressen
@@ -193,35 +190,36 @@ def zoekadres():
                     print("%s is gevonden in %s: %s: %s" % (zoek,col+x[:-len(ext)]+col0,forlmax(y),colgoed+z+col0))
 
 def voorselectie():
+    initialenlijst = []
+    initialendict = {}
     cijfersalfabet = ""
     for i in adressen:
-        if i[0] not in cijfersalfabet:
+        if i[0] not in initialendict:
+            initialenlijst.append(i[0])
+            initialendict[i[0]] = ""
             cijfersalfabet += i[0]
-    while len(cijfersalfabet) > 0:
-        gefilterd = input("Maak een voorselectie \"?\" of \"?:?\"\nKies uit %s\n%s" % (col+cijfersalfabet+col0,inputindent)).replace(" ","")
-        if gefilterd in afsluitlijst:
+    while len(initialenlijst) > 0:
+        print("Maak eerst een voorselectie.")
+        wraptekst = textwrap.wrap("Je kunt heen en weer bladeren met (bijvoorbeeld) \">\" of \"<\", en/of meerdere initialen als een kommagescheiden lijst opgeven. Gebruik \"*\" voor \"Alle adressen\".",len(lijn))
+        for i in wraptekst:
+            print(i)
+        wie,welk = cFD([initialendict,1,initialenlijst[0],afsluitlijst+bevestiglijst+teruglijst+["*"],0,True])
+        if welk in afsluitlijst:
             printafsluiten()
             exit()
-        elif gefilterd in teruglijst:
+        elif welk in teruglijst:
             printterug()
-            bereik = cijfersalfabet
+            bereik = initialenlijst
             return bereik
-        if gefilterd == "":
-            bereik = cijfersalfabet
+        elif welk in bevestiglijst:
+            bereik = initialenlijst
             return bereik
-        elif len(gefilterd) == 3 and gefilterd[1] == ":":
-            voorbereik = gefilterd
+        elif welk == "*":
+            bereik = initialenlijst
+            return bereik
         else:
-            voorbereik = "%s:%s" % (gefilterd[0],gefilterd[0])
-        if len(voorbereik) == 0:
-            bereik = cijfersalfabet
-        else:
-            try:
-                bereik = cijfersalfabet[cijfersalfabet.index(voorbereik[0]):cijfersalfabet.index(voorbereik[2])+1]
-                print(bereik)
-                return bereik
-            except:
-                print("Het bereik is hoofdlettergevoelig. Probeer het nog eens.")
+            bereik = welk
+            return bereik
 
 def printeenadres(toon):
     print(lijn)
