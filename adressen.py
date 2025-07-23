@@ -8,8 +8,8 @@ from chooseFromNumberedList import chooseFromDictionary as cFD
 
 nu = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
-versie = "1.02"
-datum = "20250720"
+versie = "1.03"
+datum = "20250723"
 
 basismap = os.path.dirname(os.path.realpath(__file__))
 werkmap = basismap 
@@ -24,9 +24,9 @@ col = "\033[95m"
 col0 = "\033[0m"
 
 NlijstNL = ["Achternaam","Voornaam","Middelste naam","Aanhef","Achtervoegsel"]
-ADRlijstaNL = ["","","Straat + nr (a)","Plaats      (a)","Provincie   (a)","Postcode    (a)","Land        (a)"]
 ADRlijstpNL = ["","","Straat + nr (p)","Plaats      (p)","Provincie   (p)","Postcode    (p)","Land        (p)"]
 ADRlijstwNL = ["","","Straat + nr (w)","Plaats      (w)","Provincie   (w)","Postcode    (w)","Land        (w)"]
+ADRlijstaNL = ["","","Straat + nr (a)","Plaats      (a)","Provincie   (a)","Postcode    (a)","Land        (a)"]
 vCarddictNL = {
         "FN"              :"Weergavenaam",
         "N"               :NlijstNL,
@@ -51,6 +51,26 @@ vCarddictNL = {
         "URL;TYPE=PREF"   :"Website   (fav)",
         "NOTE"            :"Aantekening"
         }
+restlijstNL = [
+        vCarddictNL["FN"],
+        vCarddictNL["ORG"],
+        vCarddictNL["TITLE"],
+        vCarddictNL["BDAY"],
+        vCarddictNL["TEL;TYPE=HOME"],
+        vCarddictNL["TEL;TYPE=WORK"],
+        vCarddictNL["TEL;TYPE=CELL"],
+        vCarddictNL["TEL;TYPE=OTHER"],
+        vCarddictNL["TEL;TYPE=PREF"],
+        vCarddictNL["EMAIL;TYPE=HOME"],
+        vCarddictNL["EMAIL;TYPE=WORK"],
+        vCarddictNL["EMAIL;TYPE=OTHER"],
+        vCarddictNL["EMAIL;TYPE=PREF"],
+        vCarddictNL["URL;TYPE=HOME"],
+        vCarddictNL["URL;TYPE=WORK"],
+        vCarddictNL["URL;TYPE=OTHER"],
+        vCarddictNL["URL;TYPE=PREF"],
+        vCarddictNL["NOTE"]
+        ]
 vollijstNL = [
         vCarddictNL["FN"],
         "Naam",
@@ -166,7 +186,7 @@ def zoekadres():
                         value = l[l.index(":")+1:]
                         waarde = value.strip()
                         if key in vCarddictNL:
-                            vCarddictNL[key] = waarde.strip()
+                            keysvaluesdict[vCarddictNL[key]] = waarde.strip()
                             if key == "N":
                                 Nlijst = value.split(";")
                                 for j in NlijstNL:
